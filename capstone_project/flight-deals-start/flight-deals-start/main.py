@@ -1,1 +1,3 @@
-#This file will need to use the DataManager,FlightSearch, FlightData, NotificationManager classes to achieve the program requirements.
+class Main:
+    # combining all the classes in 1 with certain functionality 
+    pass
