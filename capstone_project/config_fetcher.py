@@ -6,14 +6,13 @@ class ConfigFetcher:
     # This class is responsible for fetching info from the config sheet 
     # lets get all the info from our config file and assign it into easily accessed properties 
     def __init__(self):
-        config_path = Path("config_sheet")
+        module_dir = Path(__file__).parent
+        config_path = module_dir / "config_sheet"
         try:
-            self.data = pd.read_excel(config_path/"config.csv", sheet_name='destinations') 
+            self.data = pd.read_excel(config_path/"config.csv", sheet_name='destinations')
             self.parameters = pd.read_excel(config_path/"config.csv", sheet_name='parameters')
-            self.keys = pd.read_excel(config_path/"keys.csv", sheet_name="main") 
-            print(self.keys)
-            # make a pandas  table for the data
-            # make methods for reading the doc 
+            self.keys = pd.read_excel(config_path/"keys.csv", sheet_name="main")
+           
             
         except FileNotFoundError:
             print(f"file not found at {config_path}")
@@ -25,3 +24,4 @@ class ConfigFetcher:
         except Exception as e:
             print(f"another exception: {e}")
             self.data = None
+
