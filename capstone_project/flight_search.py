@@ -10,29 +10,30 @@ import json
 class AbstractSearch(ABC):
     
     
-    @abstractmethod
-    def search_flight(self):
-        pass
-    @abstractmethod
-    def next_page(self):
-        pass
-    @abstractmethod
-    def price_offer(self):
-        pass
+    
     @abstractmethod
     def _ensure_authentication(self):
         pass
     @abstractmethod
-    def _autenticate(self):
+    def _authenticate(self):
         pass
     @abstractmethod
-    def query_flight(self):
+    def query_flight(self,
+                    originLocationCode ,
+                    destinationLocationCode , 
+                    departureDate, 
+                    maxPrice,
+                    adults ,
+                    returnDate,
+                    nonStop ,
+                    currencyCode , 
+                    max_offers):
         pass
     @abstractmethod
-    def _get_flight_details(self):
+    def _get_flight_details(self, itineraries):
         pass
     @abstractmethod
-    def _normalize_offer(self):
+    def _normalize_offer(self, offer):
         # we get from the response what we are interested in and structure it 
         pass
 
@@ -50,7 +51,7 @@ except Exception as e:
     API_PUBLIC = None 
     API_SECRET = None
 # amadeus flight search engine API keys to be fetched from data_manager
-class AmadeusHttpClient:
+class AmadeusHttpClient(AbstractSearch):
     
     #This class is responsible for talking to the Flight Search API.
     
@@ -78,7 +79,7 @@ class AmadeusHttpClient:
         self._last_results = None
         
     
-    def authenticate(self):
+    def _authenticate(self):
         # fetching auth token from amadeus
         token_url = "https://test.api.amadeus.com/v1/security/oauth2/token"
         data = {
@@ -99,7 +100,7 @@ class AmadeusHttpClient:
         # make sure we always have a valid token to query
         now = time.time()
         if not self.access_token or now > self.access_token_expiry -100:
-            self.authenticate()
+            self._authenticate()
             
     def query_flight(self,
                     originLocationCode : str,
@@ -149,7 +150,7 @@ class AmadeusHttpClient:
         # fix return after the exp
         # return a normalized offer for use and further analysis
         # remove json.dumps!!
-        return json.dumps([self._normalize_offer(offer) for offer in self.raw_data])
+        return ([self._normalize_offer(offer) for offer in self.raw_data])
         
     def _normalize_offer(self, offer: dict ):
         # loop through the offer and get what we are interested in: 
@@ -186,6 +187,7 @@ class AmadeusHttpClient:
         return dt
     
 # ------------------- testing
+
 
 obj = AmadeusHttpClient(API_PUBLIC,API_SECRET)
 print(obj.query_flight("MAD", "lon", datetime.strptime("2025-10-10", "%Y-%m-%d"), maxPrice=300, adults=1, returnDate=datetime.strptime("2025-10-15", "%Y-%m-%d"), nonStop=True))
