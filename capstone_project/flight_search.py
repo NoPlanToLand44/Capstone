@@ -104,10 +104,10 @@ class AmadeusHttpClient:
     def query_flight(self,
                     originLocationCode : str,
                     destinationLocationCode : str, 
-                    departureDate :str, 
+                    departureDate :datetime, 
                     maxPrice:int = None,
                     adults = 1,
-                    returnDate: str | None = None ,
+                    returnDate: datetime | None = None ,
                     nonStop:bool = True,
                     currencyCode = "EUR", 
                     max_offers = 5
@@ -176,32 +176,17 @@ class AmadeusHttpClient:
             }
         return details
     
-    def _format_date(self, date_str):
-        
-        date_formats = [
-        "%Y-%m-%d",   # 2025-03-27
-        "%d-%m-%Y",   # 27-03-2025
-        "%d/%m/%Y",   # 27/03/2025
-        "%m/%d/%Y",   # 03/27/2025
-        "%d-%m-%y",   # 27-03-25
-        "%m/%d/%y",   # 03/27/25
-        "%B %d, %Y",  # March 27, 2025
-        "%b %d, %Y",  # Mar 27, 2025
-        "%d %B %Y",   # 27 March 2025
-        "%d %b %Y",   # 27 Mar 2025
-        ]
-        for fmt in date_formats:
-            try:
-                dt = datetime.strptime(date_str, fmt)
-                return dt.strftime("%Y-%m-%d")
-            except ValueError:
-                continue
-        return ValueError(f"date format not recognized")
-        
-        
+    def _format_date(self, date):
+        # fix strings, use internal datetime before sending to Amadeu
+        fmt = "%Y-%m-%d"
+        try:
+            dt = date.strftime(fmt)
+        except ValueError:
+            print(f"something is wrong with the dates")
+        return dt
     
 # ------------------- testing
 
 obj = AmadeusHttpClient(API_PUBLIC,API_SECRET)
-print(obj.query_flight("MAD", "lon", "2025-10-02", maxPrice=300, adults=1, returnDate="2025-10-05", nonStop=True))
+print(obj.query_flight("MAD", "lon", datetime.strptime("2025-10-10", "%Y-%m-%d"), maxPrice=300, adults=1, returnDate=datetime.strptime("2025-10-15", "%Y-%m-%d"), nonStop=True))
 
