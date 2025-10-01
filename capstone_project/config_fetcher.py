@@ -1,11 +1,35 @@
 import os
 from pathlib import Path
 import pandas as pd
-class ConfigFetcher:
+from abc import ABC , abstractmethod
+
+
+
+class Config(ABC):
+    def __init__(self):
+        pass
+    @abstractmethod
+    def read_config_excel(self):
+        pass
+    @abstractmethod
+    def read_config_cli(self):
+        pass
+    @abstractmethod
+    def validate_config(self):
+        pass
+    
+    
+
+class ConfigFetcher(Config):
 
     # This class is responsible for fetching info from the config sheet 
     # lets get all the info from our config file and assign it into easily accessed properties 
     def __init__(self):
+        self.data = None
+        self.parameters = None
+        self.keys = None
+    
+    def read_config_excel(self):
         module_dir = Path(__file__).parent
         config_path = module_dir / "config_sheet"
         try:
@@ -25,3 +49,9 @@ class ConfigFetcher:
             print(f"another exception: {e}")
             self.data = None
 
+
+    def read_config_cli(self):
+        pass
+    
+    def validate_config(self):
+        pass

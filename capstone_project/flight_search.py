@@ -3,22 +3,54 @@ import time
 from datetime import datetime 
 from  config_fetcher import ConfigFetcher
 from typing import Dict, Any
+from abc import ABC , abstractmethod
+import json
+
+
+class AbstractSearch(ABC):
+    
+    
+    @abstractmethod
+    def search_flight(self):
+        pass
+    @abstractmethod
+    def next_page(self):
+        pass
+    @abstractmethod
+    def price_offer(self):
+        pass
+    @abstractmethod
+    def _ensure_authentication(self):
+        pass
+    @abstractmethod
+    def _autenticate(self):
+        pass
+    @abstractmethod
+    def query_flight(self):
+        pass
+    @abstractmethod
+    def _get_flight_details(self):
+        pass
+    @abstractmethod
+    def _normalize_offer(self):
+        # we get from the response what we are interested in and structure it 
+        pass
 
 # this needs to have all of the search parametrs with defaults that i choose with filters 
         # we need to make sure we have an active token 
         # we validate the search parameters with RE 
-
-
+config = ConfigFetcher()
+config.read_config_excel()
 
 try:
-    API_PUBLIC = ConfigFetcher().keys.loc[0,'value']
-    API_SECRET = ConfigFetcher().keys.loc[1,'value']
+    API_PUBLIC = config.keys.loc[0,'value']
+    API_SECRET = config.keys.loc[1,'value']
 except Exception as e: 
     print(f"error in config : {e}")
     API_PUBLIC = None 
     API_SECRET = None
 # amadeus flight search engine API keys to be fetched from data_manager
-class FlightSearch:
+class AmadeusHttpClient:
     
     #This class is responsible for talking to the Flight Search API.
     
@@ -40,6 +72,11 @@ class FlightSearch:
         self.max_retries = max_retries
         self.access_token:str = None 
         self.access_token_expiry: int = None
+        self.meta = None
+        self.raw_data = None
+        self.dictionaries = None
+        self._last_results = None
+        
     
     def authenticate(self):
         # fetching auth token from amadeus
@@ -105,8 +142,40 @@ class FlightSearch:
         except Exception as e: 
             print(f"something failed at {e}")
         
-        return response.json()
+        payload = response.json()
+        self.meta = payload['meta']
+        self.raw_data = payload['data']
+        self.dictionaries = payload['dictionaries']        
+        # fix return after the exp
+        # return a normalized offer for use and further analysis
+        # remove json.dumps!!
+        return json.dumps([self._normalize_offer(offer) for offer in self.raw_data])
         
+    def _normalize_offer(self, offer: dict ):
+        # loop through the offer and get what we are interested in: 
+        normalized_offer = {
+            "id": offer['id'],
+            "source": offer['source'],
+            # abstracting away some of the complexity to a diferent function
+            "itineraries": self._get_flight_details(offer['itineraries']),
+            "price": offer['price']['total'],
+            
+        }
+        
+        return normalized_offer
+    
+    def _get_flight_details(self, itineraries: dict):
+        for i in itineraries:
+            
+            details = {
+                "duration": i['duration'],
+                "departure": i['segments'][0]['departure'],
+                "arrival": i['segments'][0]['arrival'],
+                'carrier_code': i['segments'][0]['carrierCode'],
+                'aircraft_code': i['segments'][0]['aircraft']
+            }
+        return details
+    
     def _format_date(self, date_str):
         
         date_formats = [
@@ -133,6 +202,6 @@ class FlightSearch:
     
 # ------------------- testing
 
-obj = FlightSearch(API_PUBLIC,API_SECRET)
-print(obj.query_flight("MAD", "lon", "2025-09-29", maxPrice=300, adults=1, returnDate="2025-10-05", nonStop=True))
+obj = AmadeusHttpClient(API_PUBLIC,API_SECRET)
+print(obj.query_flight("MAD", "lon", "2025-10-02", maxPrice=300, adults=1, returnDate="2025-10-05", nonStop=True))
 
