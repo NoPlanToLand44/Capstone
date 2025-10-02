@@ -30,9 +30,12 @@ class ConfigFetcher(Config):
         self.keys = None
     
     def read_config_excel(self):
+        # getting the configuration from the file system 
+        
         module_dir = Path(__file__).parent
         config_path = module_dir / "config_sheet"
         try:
+            
             self.data = pd.read_excel(config_path/"config.csv", sheet_name='destinations')
             self.parameters = pd.read_excel(config_path/"config.csv", sheet_name='parameters')
             self.keys = pd.read_excel(config_path/"keys.csv", sheet_name="main")
@@ -51,7 +54,9 @@ class ConfigFetcher(Config):
 
 
     def read_config_cli(self):
+        # TODO 
         pass
     
     def validate_config(self):
+        # TODO 
         pass
