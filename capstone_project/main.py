@@ -1,5 +1,4 @@
 from flight_data import FlightData
-import json
 from notification_manager import NotificationManager
 
 
@@ -32,4 +31,4 @@ class Main:
 main = Main()
 offers = main.get_data_for_notification(main.price_sorted)
 notifier = NotificationManager()
-notifier.send(offers)
+notifier.send_terminal_notification(offers)

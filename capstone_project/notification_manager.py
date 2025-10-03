@@ -7,7 +7,7 @@ class NotificationManager(AbstractNotificationManager):
     def __init__ (self):
         self._history = []
     
-    def send(self, messages):
+    def send_terminal_notification(self, messages):
         if not messages: 
             print("no flights found ")
             return
