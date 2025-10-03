@@ -3,17 +3,20 @@ from abc import ABC , abstractmethod
 from datetime import datetime
 from  config_fetcher import ConfigFetcher
 import json
+import pandas as pd 
 
 
 class AbstractDataStructure(ABC):
     @abstractmethod
     def get_all_flight_data(self, *args, **kwargs):
         pass
-    
-    def groupby(self, groupby_parameter):
+    @abstractmethod
+    def sortby(self, sort_parameter ):
+        #time duration of both flights,  price,
         pass
-    
-    
+    @abstractmethod
+    def filter_flights(self, filter_threashold):
+        pass
     
 
 class FlightData(AbstractDataStructure):
@@ -24,7 +27,11 @@ class FlightData(AbstractDataStructure):
         self.http_client = AmadeusHttpClient(API_PUBLIC,API_SECRET)
         self.destinations = self.http_client.destinations
         self.parameters = self.http_client.parameters
+        self.threashold = self.parameters['max_price']
         self.all_offers = {}
+        self.all_offers_sorted = {}
+        self.all_offers_filtered = {}
+        
         
         # putting all data i am interested in, in a list 
     
@@ -50,10 +57,33 @@ class FlightData(AbstractDataStructure):
                 print(e)
         return self.all_offers
             
+    def sortby(self, sort_parameter="price"):
+        def key_fn(offer):
+            try:
+                return float(offer.get(sort_parameter))
+            except (TypeError, ValueError):
+                return float("inf")
+        return {
+            city: sorted(offers, key=key_fn)
+            for city, offers in self.all_offers.items()
+        }
 
-
-# ------ testing: 
-data = FlightData()
-data.get_all_flight_data()
-print(json.dumps(data.all_offers))
-# TODO i am getting a response from amadeus but fucking something up with the processing 
+    def filter_flights(self, filter_threashold=None):
+        try:
+            threshold = float(filter_threashold if filter_threashold is not None else self.threashold)
+        except (TypeError, ValueError):
+            raise ValueError("filter_threashold must be a number.")
+        filtered = {}
+        for city, offers in self.all_offers.items():
+            filtered_offers = []
+            for offer in offers:
+                try:
+                    price = float(offer.get("price"))
+                except (TypeError, ValueError):
+                    continue
+                if price <= threshold:
+                    filtered_offers.append(offer)
+            if filtered_offers:
+                filtered[city] = filtered_offers
+        self.all_offers_filtered = filtered
+        return self.all_offers_filtered

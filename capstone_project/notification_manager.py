@@ -4,7 +4,19 @@ class AbstractNotificationManager(ABC):
 
 class NotificationManager(AbstractNotificationManager):
     
+    def __init__ (self):
+        self._history = []
     
+    def send(self, messages):
+        if not messages: 
+            print("no flights found ")
+            return
+        for message in messages:
+            if not message:
+                continue
+            text = message.strip()
+            self._history.append(text)
+            print(text)
     
     
     # this will need to receive info from main and push data to the terminal or email , whatever is easier for me, dont want to do phone atm, 
