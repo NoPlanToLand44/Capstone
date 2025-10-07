@@ -17,7 +17,10 @@ class NotificationManager(AbstractNotificationManager):
             text = message.strip()
             self._history.append(text)
             print(text)
-    
+        self.clear_history()
+        
+    def clear_history(self):
+        self._history.clear()
     
     # this will need to receive info from main and push data to the terminal or email , whatever is easier for me, dont want to do phone atm, 
     # too much red tape  so ill just use the terminal , when i run the program , it will let me know , based on the parameters ive chosen , 

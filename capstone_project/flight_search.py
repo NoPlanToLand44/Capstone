@@ -3,43 +3,9 @@ import time
 from datetime import datetime , date
 from  config_fetcher import ConfigFetcher
 from typing import Dict, Any
-from abc import ABC , abstractmethod
 import json
 
 
-class AbstractSearch(ABC):
-    
-    # using the SOLID principles , we need to depend on abstractions 
-    
-    @abstractmethod
-    def _ensure_authentication(self):
-        pass
-    @abstractmethod
-    def _authenticate(self):
-        pass
-    @abstractmethod
-    def query_flight(self,
-                    originLocationCode ,
-                    destinationLocationCode , 
-                    departureDate, 
-                    maxPrice,
-                    adults ,
-                    returnDate,
-                    nonStop ,
-                    currencyCode , 
-                    max_offers):
-        pass
-    @abstractmethod
-    def _get_flight_details(self, itineraries):
-        pass
-    @abstractmethod
-    def _normalize_offer(self, offer):
-        # we get from the response what we are interested in and structure it 
-        pass
-
-
-        # we need to make sure we have an active token 
-        # we validate the search parameters with RE 
 config = ConfigFetcher()
 config.read_config_excel()
 # amadeus flight search engine API keys to be fetched from data_manager
@@ -51,10 +17,12 @@ except Exception as e:
     API_PUBLIC = None 
     API_SECRET = None
 
-class AmadeusHttpClient(AbstractSearch):
+
+class AmadeusHttpClient():
     
     #This class is responsible for talking to the Flight Search API.
     # this needs to have all of the search parametrs with defaults that i choose with filters 
+    
     
     AUTH_URL = "/v1/security/oauth2/token"
     SAERCH_URL = "/v2/shopping/flight-offers"
@@ -108,8 +76,8 @@ class AmadeusHttpClient(AbstractSearch):
             token_info = response.json()
             self.access_token_expiry = time.time() + 1799
             self.access_token = token_info['access_token']
-        except requests.exceptions.HTTPError as e: 
-            print(f"some http error occured : {e}")    
+        except requests.exceptions.HTTPError as e:   
+            return   print(f"some http error occured : {e}")
             
     def _ensure_authentication(self) -> None:
         # make sure we always have a valid token to query
